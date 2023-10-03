@@ -12,10 +12,13 @@ class Square:
         self.state = state
         
     def __repr__(self):
-        return str(self.state)
+        return f"{self.x}{self.y}"
     
     def __eq__(self, other):
-        return self.state == other.state
+        if self.state == other:
+            return True
+        elif type(other) == Square:
+            return self.state == other.state
     
     def __hash__(self):
         return hash(self.state)
@@ -82,13 +85,14 @@ class Position:
         x: 0-2, y: 0-2
         """
         board = self.get_sector_squares(x, y)
-        if self.check_ttt_won(board)[0]:
-            return False
+        won = self.check_ttt_won(board)
+        if won[0]:
+            return False, won[1]
         for i in board:
             for j in i:
                 if j == EMPTY:
-                    return True
-        return False
+                    return True, None
+        return False, None
     
     
     def last_move(self):
@@ -102,7 +106,32 @@ class Position:
         self.move_stack.append(move)
         self.board[move.x][move.y] = move.state
         self.turn = BLACK if self.turn == WHITE else WHITE
-    
+        
+    def undo_move(self):
+        """Undo the last move. """
+        move = self.move_stack.pop()
+        self.board[move.x][move.y] = EMPTY
+        self.turn = BLACK if self.turn == WHITE else WHITE
+        
+    def is_game_over(self):
+        """Check if the game is over. """
+        last_move = self.last_move()
+        if last_move is None:
+            return False, None
+        # Construct large 3x3 board made of sectors
+        sectors = [[None for _ in range(3)] for _ in range(3)]
+        for i in range(3):
+            for j in range(3):
+                info = self.check_sector_playable(i, j)
+                if not info[0] and info[1] is not None:
+                    sectors[i][j] = info[1]
+                else:
+                    sectors[i][j] = None
+        won = self.check_ttt_won(sectors)
+        if won[0]:
+            return True, won[1]
+        return False, None
+        
 
 class MoveGen:
     """Generate all possible moves for a given position. """
@@ -110,7 +139,7 @@ class MoveGen:
     def __init__(self, position=Position()):
         self.pos = position
         
-    def all_moves(self):
+    def legal_moves(self):
         """Generate all possible moves for a given position. """
         pos = self.pos
         turn = pos.turn
@@ -136,4 +165,40 @@ class MoveGen:
                         x, y = pos.sector_to_global(sector[0], sector[1], i, j)
                         moves.append(Square(x, y, turn))
         return moves
-            
+    
+        
+class UTI:
+    """Universal TTT Interface. """
+    pos = Position()
+    def __init__(self, position=Position()):
+        self.pos = position
+        
+    def fen(self):
+        """Output the current position. """
+        pos = self.pos
+        fen = ""
+        for i in range(9):
+            for j in range(9):
+                fen += str(pos.board[i][j])
+                fen += "/"
+        fen += f" {pos.turn}"
+        return fen
+    
+    def from_fen(self, fen):
+        """Load a position from a fen string. """
+        fen = fen.split()
+        board = fen[0].split("/")
+        turn = fen[1]
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] == "0":
+                    board[i][j] = EMPTY
+                elif board[i][j] == "1":
+                    board[i][j] = WHITE
+                elif board[i][j] == "2":
+                    board[i][j] = BLACK
+        pos = Position(board)
+        pos.turn = turn
+        self.pos = pos
+        return pos
+    
