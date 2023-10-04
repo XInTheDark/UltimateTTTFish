@@ -106,12 +106,14 @@ class Position:
         self.move_stack.append(move)
         self.board[move.x][move.y] = move.state
         self.turn = BLACK if self.turn == WHITE else WHITE
+        return self
         
     def undo_move(self):
         """Undo the last move. """
         move = self.move_stack.pop()
         self.board[move.x][move.y] = EMPTY
         self.turn = BLACK if self.turn == WHITE else WHITE
+        return self
         
     def is_game_over(self):
         """Check if the game is over. """
@@ -132,6 +134,13 @@ class Position:
             return True, won[1]
         return False, None
         
+    def get_result(self):
+        """Get the result of the game. """
+        won = self.is_game_over()
+        if won[0]:
+            return 1 if won[1] == WHITE else -1
+        return 0
+
 
 class MoveGen:
     """Generate all possible moves for a given position. """

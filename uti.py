@@ -1,19 +1,20 @@
-import search
+import search_mcts
 from position import *
 
 MAX_DEPTH = 256
-
+MAX_TIME = 10**9
 def uti():
     command = input()
     command = command.strip()
     pos = Position()
     if command.startswith("go"):
-        if command.split(" ").__len__() > 1 and command.split(" ")[1] == "depth":
-            depth = int(command.split(" ")[2])
+        if command.split(" ").__len__() > 1 and command.split(" ")[1] == "movetimr":
+            movetime = int(command.split(" ")[2])
         else:
-            depth = MAX_DEPTH
+            movetime = MAX_TIME
         
         if command.split(" ").__len__() > 1 and command.split(" ")[1] == "infinite":
-            depth = MAX_DEPTH
-        
-        search.iterative_deepening(pos, depth)
+            movetime = MAX_TIME
+
+        # search.iterative_deepening(pos, depth)
+        search_mcts.search(pos)
