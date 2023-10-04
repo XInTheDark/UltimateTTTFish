@@ -121,17 +121,21 @@ class Position:
         if last_move is None:
             return False, None
         # Construct large 3x3 board made of sectors
-        sectors = [[None for _ in range(3)] for _ in range(3)]
+        sectors = [[EMPTY for _ in range(3)] for _ in range(3)]
         for i in range(3):
             for j in range(3):
                 info = self.check_sector_playable(i, j)
                 if not info[0] and info[1] is not None:
                     sectors[i][j] = info[1]
                 else:
-                    sectors[i][j] = None
+                    sectors[i][j] = EMPTY
         won = self.check_ttt_won(sectors)
         if won[0]:
             return True, won[1]
+
+        # Check legal moves
+        if len(MoveGen(self).legal_moves()) == 0:
+            return True, None
         return False, None
         
     def get_result(self):
@@ -154,7 +158,7 @@ class MoveGen:
         turn = pos.turn
         last_move = pos.last_move()
         if last_move is None:
-            return [Square(i, j, WHITE) for i in range(9) for j in range(9)]
+            return [Square(i, j, turn) for i in range(9) for j in range(9)]
         ALL_SQUARES_OK = False
         sector = pos.in_sector(last_move)
         if not pos.check_sector_playable(sector[0], sector[1]):
@@ -164,7 +168,7 @@ class MoveGen:
             for i in range(9):
                 for j in range(9):
                     if pos.board[i][j] == EMPTY:
-                            moves.append(Square(i, j, turn))
+                        moves.append(Square(i, j, turn))
         else:
             # Only this sector is playable
             board = pos.get_sector_squares(sector[0], sector[1])
