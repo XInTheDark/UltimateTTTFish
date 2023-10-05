@@ -23,8 +23,6 @@ def search(pos: Position, depth, alpha, beta, PvNode, rootNode=False):
             return VALUE_WIN
         elif winner == BLACK:
             return -VALUE_WIN
-        else:
-            return 0
     
     # TT lookup
     ttEntry = ttTable.get(pos)
@@ -95,7 +93,6 @@ def iterative_deepening(pos: Position, depth=10):
     global nodes
     global best_move
     nodes = 0
-    best_move = None
     for d in range(1, depth+1):
         bestValue = search(pos, d, -100000, 100000, True, True)
         print(f"info depth {d} nodes {nodes} score cp {bestValue} pv {best_move}")

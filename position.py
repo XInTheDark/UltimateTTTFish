@@ -5,6 +5,7 @@ class Square:
     EMPTY = 0
     WHITE = 1
     BLACK = 2
+    state = EMPTY
     
     def __init__(self, x=x, y=y, state=EMPTY):
         self.x = x
@@ -12,7 +13,7 @@ class Square:
         self.state = state
         
     def __repr__(self):
-        return f"{self.x}{self.y}"
+        return f"{self.x}{self.y}{self.state}"
     
     def __eq__(self, other):
         if self.state == other:
@@ -42,10 +43,13 @@ class Position:
     turn = WHITE
     def __init__(self, board=None):
         if board is None:
-            self.board = [[Square() for _ in range(9)] for _ in range(9)]
+            self.board = [[Square(__, _, EMPTY) for _ in range(9)] for __ in range(9)]
         else:
             self.board = board
         self.move_stack = []
+        
+    def __str__(self):
+        return UTI(self).fen()
     
     def check_ttt_won(self, board):
         """board is 3x3; check if won and color of winner."""
@@ -61,8 +65,8 @@ class Position:
         return False, None
     
     def in_sector(self, sq: Square):
-        """Check what sector the square is in. """
-        return sq.x // 3, sq.y // 3
+        """Check what sector the move is in. """
+        return sq.x % 3, sq.y % 3
     
     def is_sector_equal(self, x, y):
         return x.x == y.x and x.y == y.y
@@ -104,8 +108,20 @@ class Position:
     def make_move(self, move):
         """Make a move. """
         self.move_stack.append(move)
+        if move.state is None or move.state == EMPTY:
+            move.state = self.turn
         self.board[move.x][move.y] = move.state
         self.turn = BLACK if self.turn == WHITE else WHITE
+        # check for sector captured
+        for i in range(3):
+            for j in range(3):
+                info = self.check_sector_playable(i, j)
+                if not info[0] and info[1] is not None:
+                    # sector captured
+                    # convert sector coordinates to global coordinates
+                    for a in range(3):
+                        for b in range(3):
+                            self.board[self.sector_to_global(i, j, a, b)] = info[1]
         
     def undo_move(self):
         """Undo the last move. """
@@ -119,14 +135,14 @@ class Position:
         if last_move is None:
             return False, None
         # Construct large 3x3 board made of sectors
-        sectors = [[None for _ in range(3)] for _ in range(3)]
+        sectors = [[EMPTY for _ in range(3)] for _ in range(3)]
         for i in range(3):
             for j in range(3):
                 info = self.check_sector_playable(i, j)
                 if not info[0] and info[1] is not None:
                     sectors[i][j] = info[1]
                 else:
-                    sectors[i][j] = None
+                    sectors[i][j] = EMPTY
         won = self.check_ttt_won(sectors)
         if won[0]:
             return True, won[1]
@@ -191,11 +207,11 @@ class UTI:
         turn = fen[1]
         for i in range(9):
             for j in range(9):
-                if board[i][j] == "0":
+                if board[i][j][-1] == "0":
                     board[i][j] = EMPTY
-                elif board[i][j] == "1":
+                elif board[i][j][-1] == "1":
                     board[i][j] = WHITE
-                elif board[i][j] == "2":
+                elif board[i][j][-1] == "2":
                     board[i][j] = BLACK
         pos = Position(board)
         pos.turn = turn
