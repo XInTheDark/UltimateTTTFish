@@ -84,7 +84,7 @@ class Node:
         return current_node
 
     def best_action(self):
-        simulation_no = 1000000
+        simulation_no = 100000
         update_freq = max(simulation_no // 100, 256)
 
         for i in range(simulation_no):
@@ -95,7 +95,7 @@ class Node:
             # periodically print the best move
             if self.is_root and i % update_freq == 0:
                 best_move = self.best_child().parent_action
-                print(f"info nodes {i} score {self.q()} pv {best_move}")
+                print(f"info nodes {i} score n {self.n()} pv {best_move}")
 
         return self.best_child()
 

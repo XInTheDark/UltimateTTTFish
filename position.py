@@ -141,14 +141,16 @@ class Position:
     def get_result(self):
         """Get the result of the game. """
         won = self.is_game_over()
+        us = self.turn
         if won[0]:
-            return 1 if won[1] == WHITE else -1
+            return 1 if won[1] == us else -1
         return 0
 
 
 class MoveGen:
     """Generate all possible moves for a given position. """
     pos = Position()
+
     def __init__(self, position=Position()):
         self.pos = position
         

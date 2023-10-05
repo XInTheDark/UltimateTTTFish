@@ -19,7 +19,10 @@ def evaluate(pos: Position):
             else:
                 sector = pos.get_sector_squares(i, j)
                 HCESCORE += evaluate_sector(sector)
-    
+
+    # Give more bonus for at least 2 more squares
+    if HCESCORE >= 100:
+        HCESCORE += HCESCORE // 4
     RANDOM_FACTOR = 5
     HCESCORE += random.randint(-RANDOM_FACTOR, RANDOM_FACTOR)
     

@@ -7,6 +7,8 @@ nodes = 0
 ttTable = tt.TranspositionTable(size=100000)
 
 VALUE_WIN = 10000
+
+
 def search(pos: Position, depth, alpha, beta, PvNode, rootNode=False):
     global ttTable
     global nodes
